@@ -5,36 +5,26 @@ function [ output_args ] = test( input_args )
 filename = 'data\1_2015-10-03_13-42-32.mp4';
 
 % video
-videoReader = VideoReader(filename);
+video = VideoReader(filename);
 videoPlayer = vision.VideoPlayer;
 
 % extract frame rate
-videoInfo = get(videoReader);
+videoInfo = get(video);
 fr = videoInfo.FrameRate;
 
 % audio
-[Y, Fs] = audioread(filename);
-audioPlayer = audioplayer(Y, Fs);
-play(audioPlayer);
+audioFramesize = 1/fr;
+audio = mirframe(filename,'Length',audioFramesize,'s','Hop',audioFramesize,'s');
+mirplay(audio)
 
-% ratio between video frame rate and audio rate
-n = fr / Fs;
-
-currentSampleIndex = 1;
-
-while hasFrame(videoReader)
-  videoFrame = readFrame(videoReader);
-  step(videoPlayer, videoFrame);
-  
-  for i = currentSampleIndex : currentSampleIndex + n
-      % check samples in this range
-  end
-  
-  currentSampleIndex = currentSampleIndex + n;
-end
+% while hasFrame(video)
+%   videoFrame = readFrame(video);
+%   step(videoPlayer, videoFrame);
+%   
+%   currentSampleIndex = currentSampleIndex + n;
+% end
 
 release(videoPlayer);
-release(videoFileReader);
 
 end
 
