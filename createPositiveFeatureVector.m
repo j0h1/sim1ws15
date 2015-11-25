@@ -44,21 +44,33 @@ for i = 1 : size(groundTruth, 1)
 
     % extract features for (1 + 2*searchSpan) frames of first jump
     if firstJumpStart ~= 0
+        
+        %extract video features
         for j = (firstJumpStartFrame - searchSpan) : (firstJumpStartFrame + searchSpan)
             currentFrame = read(videoReader, j);
 
             % detect features for frame and persist to feature set
         end
+        
+        %extract audio features
+        extractAudioFeatures(filePath,frameRate,firstJumpStartFrame - searchSpan,firstJumpStartFrame + searchSpan);
     end    
 
     % extract features for (1 + 2*searchSpan) frames of second jump
-    if secondJump ~= 0
+    if secondJumpStart ~= 0
+                
+        %extract video features
         for j = (secondJumpStartFrame - searchSpan) : (secondJumpStartFrame + searchSpan)
             currentFrame = read(videoReader, j);    
 
             % detect features for frame
         end
+        
+        %extract audio features
+        extractAudioFeatures(filePath,frameRate,secondJumpStartFrame - searchSpan,secondJumpStartFrame + searchSpan);
     end
+    
+
     
 end
 
