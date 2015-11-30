@@ -26,7 +26,7 @@ positiveFeatureVector = zeros(jumpsDetected, numFeatures);
 
 for i = 1 : size(groundTruth, 1)    
     % load video file
-    filePath = strcat('data/', groundTruth{i, 1});
+    filePath = strcat('data/sim12-evaluation-dataset-wt15-part-01/', groundTruth{i, 1});
     videoReader = VideoReader(filePath);
     
     % extract frame rate
@@ -53,7 +53,7 @@ for i = 1 : size(groundTruth, 1)
         end
         
         %extract audio features
-        extractAudioFeatures(filePath,frameRate,firstJumpStartFrame - searchSpan,firstJumpStartFrame + searchSpan);
+        extractAudioFeatures(filePath,frameRate,firstJumpStartFrame - searchSpan,firstJumpStartFrame + searchSpan)
     end    
 
     % extract features for (1 + 2*searchSpan) frames of second jump
