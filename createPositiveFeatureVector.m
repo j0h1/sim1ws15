@@ -1,4 +1,4 @@
-function [ output_args ] = createFeatureVector( input_args )
+function positiveFeatureVector = createFeatureVector( input_args )
 %CREATEFEATUREVECTOR Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -21,14 +21,29 @@ for i = 1 : size(groundTruth, 1)
     end    
 end
 
-numFeatures = 1;
-positiveFeatureVector = zeros(jumpsDetected, numFeatures);
+% searchSpan defines how many frames are taken for the feature calculation
+% for each jump (interval where we are looking for jumps)
+searchSpan = 5;
 
-for i = 1 : size(groundTruth, 1)    
-    % load video file
-    filePath = strcat('data/sim12-evaluation-dataset-wt15-part-01/', groundTruth{i, 1});
-    videoReader = VideoReader(filePath);
+% numFeatures = number of current features
+numAudioFeatures = 2;
+numVideoFeatures = 8;
+numFeatures = numAudioFeatures + numVideoFeatures;
+
+% initializing positive feature vector
+positiveFeatureVector = zeros(2 * searchSpan + 1, jumpsDetected * numFeatures);
+
+% load all files and extract positive features
+for i = 1 : size(groundTruth, 1)
+    disp(' ');
+    disp('--------------------------------------------------------------------');
+    disp(['Processing video ', num2str(i), ' of ', num2str(size(groundTruth, 1))]);
+    disp(' ');
     
+    % load video file
+    filePath = strcat('data/', groundTruth{i, 1});
+    videoReader = VideoReader(filePath);
+
     % extract frame rate
     fileInfo = get(videoReader);
     frameRate = fileInfo.FrameRate;
@@ -40,37 +55,38 @@ for i = 1 : size(groundTruth, 1)
     % find frames for start and end points of jump
     firstJumpStartFrame = round(firstJumpStart * frameRate);
     secondJumpStartFrame = round(secondJumpStart * frameRate);
-    searchSpan = 5;
 
     % extract features for (1 + 2*searchSpan) frames of first jump
-    if firstJumpStart ~= 0
+    if firstJumpStart ~= 0        
+        % extract video features
+        videoFeatures = extractVideoFeatures(filePath, ...
+            firstJumpStartFrame - searchSpan, ...
+            firstJumpStartFrame + searchSpan);
         
-        %extract video features
-        for j = (firstJumpStartFrame - searchSpan) : (firstJumpStartFrame + searchSpan)
-            currentFrame = read(videoReader, j);
-
-            % detect features for frame and persist to feature set
-        end
+        % extract audio features
+        audioFeatures = extractAudioFeatures(filePath, frameRate, ...
+            firstJumpStartFrame - searchSpan, ...
+            firstJumpStartFrame + searchSpan);
         
-        %extract audio features
-        extractAudioFeatures(filePath,frameRate,firstJumpStartFrame - searchSpan,firstJumpStartFrame + searchSpan)
-    end    
-
-    % extract features for (1 + 2*searchSpan) frames of second jump
-    if secondJumpStart ~= 0
-                
-        %extract video features
-        for j = (secondJumpStartFrame - searchSpan) : (secondJumpStartFrame + searchSpan)
-            currentFrame = read(videoReader, j);    
-
-            % detect features for frame
-        end
-        
-        %extract audio features
-        extractAudioFeatures(filePath,frameRate,secondJumpStartFrame - searchSpan,secondJumpStartFrame + searchSpan);
+        positiveFeatureVector = cat(2, positiveFeatureVector, videoFeatures);
+        positiveFeatureVector = cat(2, positiveFeatureVector, audioFeatures);
     end
-    
 
+    % extract features for (1 + 2 * searchSpan) frames of second jump
+    if secondJumpStart ~= 0
+        % extract video features
+        videoFeatures = extractVideoFeatures(filePath, ...
+            secondJumpStartFrame - searchSpan, ...
+            secondJumpStartFrame + searchSpan);
+        
+        % extract audio features
+        audioFeatures = extractAudioFeatures(filePath, frameRate, ...
+            secondJumpStartFrame - searchSpan, ...
+            secondJumpStartFrame + searchSpan);
+        
+        positiveFeatureVector = cat(2, positiveFeatureVector, videoFeatures);
+        positiveFeatureVector = cat(2, positiveFeatureVector, audioFeatures);
+    end
     
 end
 
